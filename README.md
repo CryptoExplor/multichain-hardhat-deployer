@@ -34,3 +34,5 @@ cp .env.example .env
 # compile + deploy to a single network (example)
 npx hardhat compile
 npx hardhat deploy --network arbitrum
+
+For full instructions and background, read the files in /docs
