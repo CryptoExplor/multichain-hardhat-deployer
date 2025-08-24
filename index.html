@@ -24,11 +24,14 @@
             border-radius: 1rem;
             position: relative;
             font-family: 'Courier New', Courier, monospace;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
             line-height: 1.5;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow-x: auto; /* Enable horizontal scrolling on small screens */
+            -webkit-overflow-scrolling: touch;
+        }
+        .code-block code {
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
         .copy-button {
             position: absolute;
@@ -57,6 +60,9 @@
             transition: all 0.2s ease-in-out;
             cursor: pointer;
             user-select: none;
+            overflow: hidden; /* Prevent text overflow */
+            text-overflow: ellipsis; /* Add ellipsis for truncated text */
+            white-space: nowrap; /* Prevent wrapping */
         }
         .tab-button:hover {
             color: #e2e8f0;
@@ -72,6 +78,7 @@
             border-radius: 1rem;
             margin-top: 1rem;
             line-height: 1.5;
+            overflow-x: auto;
         }
         .flow-node {
             background-color: #4a5568;
@@ -86,9 +93,9 @@
         }
         .flow-arrow {
             color: #4299e1;
-            font-size: 2rem;
+            font-size: 3rem;
             text-align: center;
-            margin: 1rem 0;
+            margin: 0 1rem;
         }
         @media (min-width: 768px) {
             .md-flex-col {
@@ -96,6 +103,13 @@
             }
         }
     </style>
+    <!-- Prism.js for syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-twilight.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-solidity.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
 </head>
 <body class="p-4 md:p-8">
     <div class="container mx-auto">
@@ -103,6 +117,14 @@
         <header class="text-center mb-10">
             <h1 class="text-3xl md:text-5xl font-bold mb-4 text-white">Multichain Hardhat Deployer</h1>
             <p class="text-lg text-gray-400">A guide and ready-to-copy files for deploying a smart contract with the same address across multiple EVM chains.</p>
+            <!-- Download Button -->
+            <a href="https://github.com/yourname/multichain-hardhat-deployer/archive/refs/heads/main.zip" 
+               class="inline-flex items-center mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl shadow-lg transition-colors">
+               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mr-2">
+                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+               </svg>
+               Download Repo as ZIP
+            </a>
         </header>
 
         <!-- New: Deployment Flow Diagram -->
@@ -116,7 +138,7 @@
                     <p class="text-sm text-gray-300">Run `npm install` and `npx hardhat` to get your project ready.</p>
                 </div>
 
-                <div class="flow-arrow">&#8594;</div>
+                <div class="flow-arrow hidden md:block">→</div>
 
                 <!-- Step 2: Configure -->
                 <div class="flow-node">
@@ -124,7 +146,7 @@
                     <p class="text-sm text-gray-300">Fill out `.env` with your **same** private key and API keys.</p>
                 </div>
 
-                <div class="flow-arrow">&#8594;</div>
+                <div class="flow-arrow hidden md:block">→</div>
 
                 <!-- Step 3: Deploy -->
                 <div class="flow-node">
@@ -132,7 +154,7 @@
                     <p class="text-sm text-gray-300">Run `npx hardhat deploy` for each network. <br><a href="#tab-deploy" class="text-blue-400 underline" onclick="showTab('tab-deploy')">See deploy commands.</a></p>
                 </div>
 
-                <div class="flow-arrow">&#8594;</div>
+                <div class="flow-arrow hidden md:block">→</div>
 
                 <!-- Step 4: Verify -->
                 <div class="flow-node">
@@ -148,7 +170,7 @@
         <!-- Project Layout Infographic -->
         <div class="mb-10 p-6 bg-gray-700 rounded-xl">
             <h2 class="text-2xl font-semibold mb-4 text-white">Project Layout</h2>
-            <div class="file-tree text-sm text-gray-300 overflow-auto">
+            <div class="file-tree text-sm text-gray-300">
 <pre>
 multichain-hardhat-deployer/
 ├── README.md
@@ -173,7 +195,7 @@ multichain-hardhat-deployer/
         </div>
 
         <!-- Tabbed Interface for Files -->
-        <div class="flex flex-wrap border-b border-gray-600 mb-4">
+        <div class="flex flex-wrap border-b border-gray-600 mb-4 gap-2 md:gap-0">
             <button class="tab-button active" onclick="showTab('tab-readme')">README.md</button>
             <button class="tab-button" onclick="showTab('tab-env')">.env.example</button>
             <button class="tab-button" onclick="showTab('tab-hardhat')">hardhat.config.js</button>
@@ -188,7 +210,7 @@ multichain-hardhat-deployer/
             <h3 class="text-xl font-semibold mb-4 text-white">README.md</h3>
             <div class="code-block" id="readme-content">
                 <button class="copy-button" onclick="copyToClipboard('readme-content')">Copy</button>
-                <pre># Multichain Hardhat Deployer
+                <pre><code class="language-markdown"># Multichain Hardhat Deployer
 
 Deploy a contract with the **same address** across multiple EVM networks using Hardhat + `hardhat-deploy` deterministic deployments (CREATE2).
 
@@ -218,7 +240,8 @@ cp .env.example .env
 # compile + deploy to a single network (example)
 npx hardhat compile
 npx hardhat deploy --network arbitrum
-For full instructions and background, read the files in /docs.</pre>
+For full instructions and background, read the files in /docs.
+</code></pre>
             </div>
         </div>
 
@@ -226,7 +249,10 @@ For full instructions and background, read the files in /docs.</pre>
             <h3 class="text-xl font-semibold mb-4 text-white">.env.example</h3>
             <div class="code-block" id="env-content">
                 <button class="copy-button" onclick="copyToClipboard('env-content')">Copy</button>
-                <pre># .env.example
+                <p class="text-sm text-yellow-400 mb-4">
+                    <span class="font-bold">⚠️ Security Note:</span> Do not commit your `.env` file to GitHub. Add it to your `.gitignore` to prevent leaking private keys.
+                </p>
+                <pre><code class="language-bash"># .env.example
 # Replace values and save as .env
 
 # Deployer private key (use same key on all networks for deterministic address)
@@ -247,7 +273,8 @@ ARB_RPC=[https://arb1.arbitrum.io/rpc](https://arb1.arbitrum.io/rpc)
 BASE_RPC=[https://mainnet.base.org](https://mainnet.base.org)
 OPTIMISM_RPC=[https://mainnet.optimism.io](https://mainnet.optimism.io)
 SOMNIA_RPC=[https://dream-rpc.somnia.network](https://dream-rpc.somnia.network)
-INK_RPC=[https://rpc.ink-sepolia.com](https://rpc.ink-sepolia.com)</pre>
+INK_RPC=[https://rpc.ink-sepolia.com](https://rpc.ink-sepolia.com)
+</code></pre>
             </div>
         </div>
 
@@ -255,7 +282,7 @@ INK_RPC=[https://rpc.ink-sepolia.com](https://rpc.ink-sepolia.com)</pre>
             <h3 class="text-xl font-semibold mb-4 text-white">hardhat.config.js</h3>
             <div class="code-block" id="hardhat-content">
                 <button class="copy-button" onclick="copyToClipboard('hardhat-content')">Copy</button>
-                <pre>require('dotenv').config();
+                <pre><code class="language-javascript">require('dotenv').config();
 require('@nomicfoundation/hardhat-toolbox');
 require('hardhat-deploy');
 
@@ -301,7 +328,7 @@ module.exports = {
     },
   },
   // hardhat-deploy will pick up namedAccounts
-};</pre>
+};</code></pre>
             </div>
         </div>
 
@@ -309,7 +336,7 @@ module.exports = {
             <h3 class="text-xl font-semibold mb-4 text-white">contracts/MyContract.sol</h3>
             <div class="code-block" id="contract-content">
                 <button class="copy-button" onclick="copyToClipboard('contract-content')">Copy</button>
-                <pre>// SPDX-License-Identifier: MIT
+                <pre><code class="language-solidity">// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 contract MyContract {
@@ -318,7 +345,7 @@ contract MyContract {
     function set(uint256 _v) external {
         value = _v;
     }
-}</pre>
+}</code></pre>
             </div>
         </div>
 
@@ -326,7 +353,7 @@ contract MyContract {
             <h3 class="text-xl font-semibold mb-4 text-white">deploy/00_deploy_mycontract.js</h3>
             <div class="code-block" id="deploy-content">
                 <button class="copy-button" onclick="copyToClipboard('deploy-content')">Copy</button>
-                <pre>// Example deploy script using hardhat-deploy and deterministic CREATE2 deployment
+                <pre><code class="language-javascript">// Example deploy script using hardhat-deploy and deterministic CREATE2 deployment
 module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
@@ -342,17 +369,18 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   });
 };
 
-module.exports.tags = ['MyContract'];</pre>
+module.exports.tags = ['MyContract'];
+</code></pre>
             </div>
         </div>
 
         <div id="tab-docs" class="tab-content hidden">
             <h3 class="text-xl font-semibold mb-4 text-white">Docs</h3>
             <div class="flex flex-wrap justify-between gap-4">
-                <div class="w-full md:w-[48%] bg-gray-700 p-6 rounded-xl flex flex-col justify-between">
+                <div class="w-full md:w-[48%] bg-gray-700 p-6 rounded-xl flex flex-col justify-between overflow-x-auto">
                     <h4 class="text-lg font-bold mb-2 text-white">01-prerequisites.md</h4>
-                    <div class="text-sm text-gray-300 overflow-auto flex-1">
-                        <pre># 01 - Prerequisites
+                    <div class="text-sm text-gray-300 flex-1">
+                        <pre><code class="language-markdown"># 01 - Prerequisites
 
 Minimum knowledge & tools:
 
@@ -366,22 +394,25 @@ Software you will install:
 ```bash
 npm init -y
 npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox hardhat-deploy dotenv
+```
+
 Secrets & keys:
 
 A funded deployer private key (same key across chains if you want identical address)
 Explorer API keys: Arbiscan, Basescan, Optimism (Etherscan-style keys)
 RPC endpoints for each network (Infura/Alchemy/public RPC or your own)
+
 Security:
 
 Keep .env out of source control (add to .gitignore).
 Use GitHub Secrets for CI (do not commit your private key).
-</pre>
+</code></pre>
                     </div>
                 </div>
-                <div class="w-full md:w-[48%] bg-gray-700 p-6 rounded-xl flex flex-col justify-between">
+                <div class="w-full md:w-[48%] bg-gray-700 p-6 rounded-xl flex flex-col justify-between overflow-x-auto">
                     <h4 class="text-lg font-bold mb-2 text-white">02-setup.md</h4>
-                    <div class="text-sm text-gray-300 overflow-auto flex-1">
-                        <pre># 02 - Project Setup
+                    <div class="text-sm text-gray-300 flex-1">
+                        <pre><code class="language-markdown"># 02 - Project Setup
 
 1. Initialize project and Hardhat
 
@@ -391,20 +422,26 @@ cd multichain-hardhat-deployer
 npm init -y
 npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox hardhat-deploy dotenv
 npx hardhat
+```
+
 # Choose "Create a basic sample project"
 Add hardhat-deploy and configure hardhat.config.js (see repo file)
 Create .env from .env.example and fill values.
 Place your contract into contracts/MyContract.sol and modify as needed.
+
 Compile
+```bash
 npx hardhat compile
+```
+
 You're now ready to write deploy scripts.
-</pre>
+</code></pre>
                     </div>
                 </div>
-                <div class="w-full md:w-[48%] bg-gray-700 p-6 rounded-xl flex flex-col justify-between">
+                <div class="w-full md:w-[48%] bg-gray-700 p-6 rounded-xl flex flex-col justify-between overflow-x-auto">
                     <h4 class="text-lg font-bold mb-2 text-white">03-deployment.md</h4>
-                    <div class="text-sm text-gray-300 overflow-auto flex-1">
-                        <pre># 03 - Deployment
+                    <div class="text-sm text-gray-300 flex-1">
+                        <pre><code class="language-markdown"># 03 - Deployment
 
 ## Deterministic deployments (why and how)
 
@@ -429,21 +466,25 @@ npx hardhat deploy --network base
 npx hardhat deploy --network optimism
 npx hardhat deploy --network somnia
 npx hardhat deploy --network ink
+```
+
 Confirming the address
 After deployment hardhat-deploy prints the deployed address. Verify that the addresses reported on each chain match. If they differ:
 
-Confirm you used the same PRIVATE_KEY
-Confirm compiled bytecode & compiler settings match across machines/CI
-Confirm constructor args & library linking are identical
+- Confirm you used the same PRIVATE_KEY
+- Confirm compiled bytecode & compiler settings match across machines/CI
+- Confirm constructor args & library linking are identical
+
 When deterministic deployments won’t work
 If a network forbids the CREATE2 pattern or hardhat-deploy can't use it, address may differ.
-If your contract uses CREATE internally or depends on chain-specific behavior, deterministic address parity is not guaranteed.</pre>
+If your contract uses CREATE internally or depends on chain-specific behavior, deterministic address parity is not guaranteed.
+</code></pre>
                     </div>
                 </div>
-                <div class="w-full md:w-[48%] bg-gray-700 p-6 rounded-xl flex flex-col justify-between">
+                <div class="w-full md:w-[48%] bg-gray-700 p-6 rounded-xl flex flex-col justify-between overflow-x-auto">
                     <h4 class="text-lg font-bold mb-2 text-white">04-verification.md</h4>
-                    <div class="text-sm text-gray-300 overflow-auto flex-1">
-                        <pre># 04 - Verification (Etherscan & Blockscout)
+                    <div class="text-sm text-gray-300 flex-1">
+                        <pre><code class="language-markdown"># 04 - Verification (Etherscan & Blockscout)
 
 ## Etherscan-style explorers (Arbiscan, Basescan, Optimism, Etherscan)
 
@@ -452,34 +493,38 @@ If your contract uses CREATE internally or depends on chain-specific behavior, d
 
 ```bash
 # Verify on Arbitrum
-npx hardhat verify --network arbitrum <CONTRACT_ADDRESS> "Constructor arg 1" 123
+npx hardhat verify --network arbitrum &lt;CONTRACT_ADDRESS&gt; "Constructor arg 1" 123
+```
 Hardhat will submit source + metadata to the explorer's API and produce a verified contract page.
 
 Blockscout-based explorers (Somnia, Ink, others)
 Blockscout does not always support the exact same verification API. If npx hardhat verify fails for Blockscout, two options:
 
-Use a Blockscout-compatible plugin (search hardhat-blockscout-verify) — if available.
-Use manual verification via Blockscout's web UI or its contracts API (if the chain provides an API). Example curl pattern (chain-specific):
-curl -X POST '[https://blockscout.example/api?module=contract&action=verifysourcecode](https://blockscout.example/api?module=contract&action=verifysourcecode)' \
+- Use a Blockscout-compatible plugin (search hardhat-blockscout-verify) — if available.
+- Use manual verification via Blockscout's web UI or its contracts API (if the chain provides an API). Example curl pattern (chain-specific):
+```bash
+curl -X POST 'https://blockscout.example/api?module=contract&action=verifysourcecode' \
   -F 'apikey=YOUR_KEY' \
   -F 'contractaddress=0x...' \
   -F 'sourceCode=@MyContract.sol' \
   -F 'contractname=MyContract' \
   -F 'compilerversion=v0.8.20+commit...' \
-  -F 'constructorArgu ments=...'
+  -F 'constructorArguments=...'
+```
+
 Read your chain's explorer docs for exact parameters. Some chains require uploading flattened source & metadata JSON.
 
 Troubleshooting verification
-Ensure compiler version & optimization settings match the compiled artifacts.
-Provide exact constructor args in ABI-encoded form if required.
-If libraries are used, make sure to supply address mappings.
-</pre>
+- Ensure compiler version & optimization settings match the compiled artifacts.
+- Provide exact constructor args in ABI-encoded form if required.
+- If libraries are used, make sure to supply address mappings.
+</code></pre>
                     </div>
                 </div>
-                <div class="w-full md:w-[48%] bg-gray-700 p-6 rounded-xl flex flex-col justify-between">
+                <div class="w-full md:w-[48%] bg-gray-700 p-6 rounded-xl flex flex-col justify-between overflow-x-auto">
                     <h4 class="text-lg font-bold mb-2 text-white">05-troubleshooting.md</h4>
-                    <div class="text-sm text-gray-300 overflow-auto flex-1">
-                        <pre># 05 - Troubleshooting
+                    <div class="text-sm text-gray-300 flex-1">
+                        <pre><code class="language-markdown"># 05 - Troubleshooting
 
 ### Addresses differ across chains
 - Ensure same PRIVATE_KEY used
@@ -497,13 +542,14 @@ If libraries are used, make sure to supply address mappings.
 - Confirm constructor args encoding
 
 ### Explorer rate limits
-- Keep API calls within rate limits. Use retry/backoff in CI.</pre>
+- Keep API calls within rate limits. Use retry/backoff in CI.
+</code></pre>
                     </div>
                 </div>
-                <div class="w-full md:w-[48%] bg-gray-700 p-6 rounded-xl flex flex-col justify-between">
+                <div class="w-full md:w-[48%] bg-gray-700 p-6 rounded-xl flex flex-col justify-between overflow-x-auto">
                     <h4 class="text-lg font-bold mb-2 text-white">06-ci-cd.md</h4>
-                    <div class="text-sm text-gray-300 overflow-auto flex-1">
-                        <pre># 06 - GitHub Actions: Auto-deploy (example)
+                    <div class="text-sm text-gray-300 flex-1">
+                        <pre><code class="language-markdown"># 06 - GitHub Actions: Auto-deploy (example)
 
 This example shows a simple workflow that compiles, deploys sequentially to multiple networks when you push to `main`.
 
@@ -550,13 +596,14 @@ jobs:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           OPTIMISM_RPC: ${{ secrets.OPTIMISM_RPC }}
           OPTIMISM_API_KEY: ${{ secrets.OPTIMISM_API_KEY }}
+```
 
 # Add more networks as needed. Consider splitting networks into parallel jobs
 Notes:
 
-Running sequential deployments keeps logs tidy. For faster pipelines create parallel jobs with separate runner limits.
-Add verification steps after each deployment using npx hardhat verify and passing the contract address. Keep in mind explorer API rate limits.
-</pre>
+- Running sequential deployments keeps logs tidy. For faster pipelines create parallel jobs with separate runner limits.
+- Add verification steps after each deployment using npx hardhat verify and passing the contract address. Keep in mind explorer API rate limits.
+</code></pre>
                     </div>
                 </div>
             </div>
@@ -566,7 +613,7 @@ Add verification steps after each deployment using npx hardhat verify and passin
             <h3 class="text-xl font-semibold mb-4 text-white">.github/workflows/deploy.yml</h3>
             <div class="code-block" id="github-content">
                 <button class="copy-button" onclick="copyToClipboard('github-content')">Copy</button>
-                <pre># See docs/06-ci-cd.md for explanation. This is a minimal starting point.
+                <pre><code class="language-yaml"># See docs/06-ci-cd.md for explanation. This is a minimal starting point.
 name: Deploy to multiple networks
 on:
   push:
@@ -605,13 +652,16 @@ jobs:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           OPTIMISM_RPC: ${{ secrets.OPTIMISM_RPC }}
           OPTIMISM_API_KEY: ${{ secrets.OPTIMISM_API_KEY }}
-</pre>
+</code></pre>
             </div>
         </div>
 
     </div>
 
     <script>
+        // Store the active tab ID for persistence
+        let activeTabId = 'tab-readme';
+
         function showTab(tabId) {
             // Get all tab buttons and content
             const tabs = document.querySelectorAll('.tab-button');
@@ -624,6 +674,8 @@ jobs:
             // Show the selected content and activate the clicked button
             document.getElementById(tabId).classList.remove('hidden');
             document.querySelector(`[onclick="showTab('${tabId}')"]`).classList.add('active');
+            
+            activeTabId = tabId; // Update the active tab ID
         }
 
         function copyToClipboard(elementId) {
@@ -639,9 +691,10 @@ jobs:
                 document.execCommand('copy');
                 // Provide user feedback
                 const button = element.querySelector('.copy-button');
+                const originalText = button.innerText;
                 button.innerText = 'Copied!';
                 setTimeout(() => {
-                    button.innerText = 'Copy';
+                    button.innerText = originalText;
                 }, 2000);
             } catch (err) {
                 console.error('Failed to copy text: ', err);
@@ -651,6 +704,11 @@ jobs:
                 document.body.removeChild(textarea);
             }
         }
+        
+        // Initial call to set the active tab on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            showTab(activeTabId);
+        });
     </script>
 </body>
 </html>
