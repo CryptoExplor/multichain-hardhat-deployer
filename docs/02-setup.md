@@ -11,3 +11,15 @@ npm init -y
 npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox hardhat-deploy dotenv
 npx hardhat
 # Choose "Create a basic sample project"
+```
+
+Add hardhat-deploy and configure hardhat.config.js (see repo file)
+
+Create .env from .env.example and fill values.
+
+Place your contract into contracts/MyContract.sol and modify as needed.
+
+Compile
+```
+npx hardhat compile
+```
