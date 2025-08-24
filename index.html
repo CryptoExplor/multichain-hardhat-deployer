@@ -110,6 +110,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-solidity.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
 </head>
 <body class="p-4 md:p-8">
     <div class="container mx-auto">
@@ -188,8 +189,12 @@ multichain-hardhat-deployer/
 │   ├── 04-verification.md
 │   ├── 05-troubleshooting.md
 │   └── 06-ci-cd.md
-└── .github/workflows/
-    └── deploy.yml
+├── .github/workflows/
+│   ├── deploy.yml
+│   └── deploy-matrix.yml (NEW!)
+├── .gitignore (NEW!)
+├── .prettierrc (NEW!)
+└── .eslintrc.js (NEW!)
 </pre>
             </div>
         </div>
@@ -201,8 +206,9 @@ multichain-hardhat-deployer/
             <button class="tab-button" onclick="showTab('tab-hardhat')">hardhat.config.js</button>
             <button class="tab-button" onclick="showTab('tab-contract')">MyContract.sol</button>
             <button class="tab-button" onclick="showTab('tab-deploy')">00_deploy_mycontract.js</button>
+            <button class="tab-button" onclick="showTab('tab-advanced-config')">Advanced Config</button>
+            <button class="tab-button" onclick="showTab('tab-advanced-ci')">CI/CD (Matrix)</button>
             <button class="tab-button" onclick="showTab('tab-docs')">Docs</button>
-            <button class="tab-button" onclick="showTab('tab-github')">.github/workflows</button>
         </div>
 
         <!-- Tab Content Containers -->
@@ -216,7 +222,11 @@ Deploy a contract with the **same address** across multiple EVM networks using H
 
 This repository contains a step-by-step guide and ready-to-copy files for beginners: configuration, deploy scripts, verification tips (Etherscan/Blockscout), and a sample GitHub Actions workflow.
 
-> Note: This repo is generic and intentionally *does not* include any application-specific code (no password-manager example). Replace `MyContract` with your contract name.
+This project is now production-grade and includes:
+- **Security & Hygiene**: `.gitignore`, `eslint`, and `prettier` configurations to prevent key leaks and enforce code standards.
+- **Extra Dev Features**: Tasks for flattening contracts and checking contract size.
+- **Advanced CI/CD**: An example of a parallel deployment pipeline using a GitHub Actions matrix strategy.
+- **Enhanced Documentation**: A quickstart guide, advanced guides, and a troubleshooting FAQ.
 
 ## Quicklinks
 - `docs/01-prerequisites.md` — environment & keys
@@ -285,11 +295,30 @@ INK_RPC=[https://rpc.ink-sepolia.com](https://rpc.ink-sepolia.com)
                 <pre><code class="language-javascript">require('dotenv').config();
 require('@nomicfoundation/hardhat-toolbox');
 require('hardhat-deploy');
+require('hardhat-gas-reporter');
+require('hardhat-contract-sizer');
+require('@nomicfoundation/hardhat-ethers'); // required for ethers-based tasks
+
+// Optional plugins for security and upgrades
+// require('@openzeppelin/hardhat-upgrades');
+// require('hardhat-dependency-compiler');
 
 const { PRIVATE_KEY, ARBISCAN_API_KEY, BASESCAN_API_KEY, OPTIMISM_API_KEY, ETHERSCAN_API_KEY } = process.env;
 
 module.exports = {
-  solidity: '0.8.20',
+  solidity: {
+    compilers: [
+      {
+        version: '0.8.20',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200
+          }
+        }
+      }
+    ]
+  },
   namedAccounts: {
     deployer: {
       default: 0,
@@ -327,8 +356,34 @@ module.exports = {
       mainnet: ETHERSCAN_API_KEY || '',
     },
   },
-  // hardhat-deploy will pick up namedAccounts
-};</code></pre>
+  gasReporter: {
+    enabled: true,
+    currency: 'USD',
+    gasPrice: 10, // Example: 10 gwei, set this dynamically if you want
+    showTimeSpent: true,
+  },
+  contractSizer: {
+    alphaSort: true,
+    runOnCompile: true,
+    strict: true,
+  },
+};
+
+// Custom Hardhat tasks can be defined here, or in a separate file and imported.
+// Example: a gas-guard task
+task('gas-guard', 'Checks the current gas price against a threshold').setAction(
+  async (_, { ethers }) => {
+    const gasPrice = await ethers.provider.getGasPrice();
+    const threshold = ethers.utils.parseUnits('50', 'gwei'); // 50 gwei threshold
+    if (gasPrice.gt(threshold)) {
+      console.log(`⚠️ Gas price (${ethers.utils.formatUnits(gasPrice, 'gwei')} gwei) is above threshold (${ethers.utils.formatUnits(threshold, 'gwei')} gwei). Aborting.`);
+      process.exit(1);
+    } else {
+      console.log(`✅ Gas price (${ethers.utils.formatUnits(gasPrice, 'gwei')} gwei) is below threshold. Proceeding.`);
+    }
+  }
+);
+</code></pre>
             </div>
         </div>
 
@@ -374,6 +429,156 @@ module.exports.tags = ['MyContract'];
             </div>
         </div>
 
+        <div id="tab-advanced-config" class="tab-content hidden">
+            <h3 class="text-xl font-semibold mb-4 text-white">Advanced Config Files</h3>
+            <div class="flex flex-wrap justify-between gap-4">
+                <div class="w-full md:w-[48%] bg-gray-700 p-6 rounded-xl flex flex-col justify-between overflow-x-auto">
+                    <h4 class="text-lg font-bold mb-2 text-white">package.json</h4>
+                    <div class="text-sm text-gray-300 flex-1">
+                        <pre><code class="language-json">{
+  "name": "multichain-hardhat-deployer",
+  "version": "1.0.0",
+  "description": "Deploy same contract on multiple EVM chains with Hardhat",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx hardhat test",
+    "compile": "npx hardhat compile",
+    "deploy:arb": "npx hardhat deploy --network arbitrum",
+    "deploy:base": "npx hardhat deploy --network base",
+    "deploy:opt": "npx hardhat deploy --network optimism",
+    "deploy:all": "npm run deploy:arb && npm run deploy:base && npm run deploy:opt",
+    "prettier": "prettier --write 'contracts/**/*.sol'",
+    "lint": "eslint 'scripts/**/*.js' 'test/**/*.js' --fix"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.22.0",
+    "hardhat-deploy": "^0.12.2",
+    "dotenv": "^16.4.5",
+    "hardhat-gas-reporter": "^1.0.10",
+    "hardhat-contract-sizer": "^2.10.0",
+    "@nomicfoundation/hardhat-ethers": "^3.0.0",
+    "prettier": "^3.2.5",
+    "prettier-plugin-solidity": "^1.3.1",
+    "eslint": "^8.57.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.1"
+  }
+}
+</code></pre>
+                    </div>
+                </div>
+                <div class="w-full md:w-[48%] bg-gray-700 p-6 rounded-xl flex flex-col justify-between overflow-x-auto">
+                    <h4 class="text-lg font-bold mb-2 text-white">.gitignore</h4>
+                    <div class="text-sm text-gray-300 flex-1">
+                        <pre><code class="language-bash"># The .env file contains secrets, never commit it!
+.env
+# Hardhat artifacts
+/artifacts
+/cache
+# node_modules folder
+/node_modules
+# local deployments
+/deployments/localhost
+/deployments/hardhat
+/typechain-types
+</code></pre>
+                    </div>
+                </div>
+                <div class="w-full md:w-[48%] bg-gray-700 p-6 rounded-xl flex flex-col justify-between overflow-x-auto">
+                    <h4 class="text-lg font-bold mb-2 text-white">.eslintrc.js</h4>
+                    <div class="text-sm text-gray-300 flex-1">
+                        <pre><code class="language-javascript">module.exports = {
+    env: {
+        browser: false,
+        es2021: true,
+        mocha: true,
+        node: true,
+    },
+    extends: [
+        'airbnb-base',
+        'plugin:prettier/recommended'
+    ],
+    parserOptions: {
+        ecmaVersion: 12,
+    },
+    rules: {
+        'no-console': 'off',
+        'import/no-extraneous-dependencies': ['error', {'devDependencies': true}]
+    },
+};</code></pre>
+                    </div>
+                </div>
+                <div class="w-full md:w-[48%] bg-gray-700 p-6 rounded-xl flex flex-col justify-between overflow-x-auto">
+                    <h4 class="text-lg font-bold mb-2 text-white">.prettierrc</h4>
+                    <div class="text-sm text-gray-300 flex-1">
+                        <pre><code class="language-json">{
+  "semi": true,
+  "tabWidth": 2,
+  "printWidth": 120,
+  "useTabs": false,
+  "trailingComma": "es5",
+  "bracketSpacing": true,
+  "arrowParens": "always",
+  "singleQuote": true,
+  "plugins": [
+    "prettier-plugin-solidity"
+  ]
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="tab-advanced-ci" class="tab-content hidden">
+            <h3 class="text-xl font-semibold mb-4 text-white">CI/CD (Matrix Deploy)</h3>
+            <div class="code-block" id="advanced-ci-content">
+                <button class="copy-button" onclick="copyToClipboard('advanced-ci-content')">Copy</button>
+                <p class="text-sm text-yellow-400 mb-4">
+                    <span class="font-bold">⚠️ Security Note:</span> Store all secrets (like PRIVATE_KEY) in GitHub Secrets. This workflow will deploy to multiple networks in parallel.
+                </p>
+                <pre><code class="language-yaml"># .github/workflows/deploy-matrix.yml
+name: Parallel Multi-Chain Deployment
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Define networks to deploy to and their corresponding secrets
+        network: [arbitrum, base, optimism]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+
+      - name: Deploy to ${{ matrix.network }}
+        run: npx hardhat deploy --network ${{ matrix.network }}
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          ARBISCAN_API_KEY: ${{ secrets.ARBISCAN_API_KEY }}
+          BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
+          OPTIMISM_API_KEY: ${{ secrets.OPTIMISM_API_KEY }}
+          # Pass RPC URLs dynamically based on the matrix
+          ARB_RPC: ${{ secrets.ARB_RPC }}
+          BASE_RPC: ${{ secrets.BASE_RPC }}
+          OPTIMISM_RPC: ${{ secrets.OPTIMISM_RPC }}
+
+      # Optional: Add a verification step after deployment
+      # - name: Verify on ${{ matrix.network }}
+      #   run: npx hardhat verify --network ${{ matrix.network }} --contract <ContractName> <ContractAddress>
+      #   env:
+      #     PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+      #     ...
+</code></pre>
+            </div>
+        </div>
+
         <div id="tab-docs" class="tab-content hidden">
             <h3 class="text-xl font-semibold mb-4 text-white">Docs</h3>
             <div class="flex flex-wrap justify-between gap-4">
@@ -393,9 +598,8 @@ Software you will install:
 
 ```bash
 npm init -y
-npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox hardhat-deploy dotenv
+npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox hardhat-deploy dotenv hardhat-gas-reporter hardhat-contract-sizer prettier prettier-plugin-solidity eslint eslint-config-airbnb-base eslint-plugin-import @nomicfoundation/hardhat-ethers
 ```
-
 Secrets & keys:
 
 A funded deployer private key (same key across chains if you want identical address)
@@ -420,7 +624,7 @@ Use GitHub Secrets for CI (do not commit your private key).
 mkdir multichain-hardhat-deployer
 cd multichain-hardhat-deployer
 npm init -y
-npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox hardhat-deploy dotenv
+npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox hardhat-deploy dotenv hardhat-gas-reporter hardhat-contract-sizer prettier prettier-plugin-solidity eslint eslint-config-airbnb-base eslint-plugin-import @nomicfoundation/hardhat-ethers
 npx hardhat
 ```
 
