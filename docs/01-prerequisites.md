@@ -16,7 +16,7 @@ Software you will install:
 ```bash
 npm init -y
 npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox hardhat-deploy dotenv
-
+```
 
 //Secrets & keys:
 //A funded deployer private key (same key across chains if you want identical address)
